@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulateur ROI - MyFanjan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar: Inputs -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <h1>MyFanjan <span class="badge">ROI</span></h1>
+            </div>
+
+            <div class="scroll-inputs">
+                <!-- Section A -->
+                <div class="input-group">
+                    <h3>A. Paramètres Généraux</h3>
+                    <div class="field">
+                        <label>Surface (m²)</label>
+                        <input type="number" id="surface" value="100">
+                    </div>
+                    <div class="field">
+                        <label>Amortissement (ans)</label>
+                        <input type="number" id="duree_amortissement" value="5">
+                    </div>
+                    <div class="field">
+                        <label>Semaines/an</label>
+                        <input type="number" id="semaines_an" value="48">
+                    </div>
+                    <div class="field">
+                        <label>Taux Act. (%)</label>
+                        <input type="number" step="0.01" id="taux_act" value="5">
+                        <!-- Displayed as 5, treated as 0.05 -->
+                    </div>
+                    <div class="field">
+                        <label>Coût MO (€/h)</label>
+                        <input type="number" step="0.1" id="cout_mo" value="15">
+                    </div>
+                    <div class="field">
+                        <label>Prix Élec (€/kWh)</label>
+                        <input type="number" step="0.01" id="prix_elec" value="0.18">
+                    </div>
+
+                    <button class="toggle-advanced" onclick="toggleAdvanced('advanced-gen')">Avancé ▼</button>
+                    <div id="advanced-gen" class="advanced-section hidden">
+                        <!-- Add less frequent general params here if any -->
+                    </div>
+                </div>
+
+                <!-- Section B -->
+                <div class="input-group">
+                    <h3>B. Pleine Terre (Référence)</h3>
+                    <div class="field">
+                        <label>Densité (plt/m²)</label>
+                        <input type="number" id="pt_densite" value="14">
+                    </div>
+                    <div class="field">
+                        <label>Cycle (semaines)</label>
+                        <input type="number" id="pt_cycle" value="8">
+                    </div>
+                    <div class="field">
+                        <label>Taux Vente (%)</label>
+                        <input type="number" id="pt_taux_vente" value="70">
+                    </div>
+                    <div class="field">
+                        <label>Prix Vente (€)</label>
+                        <input type="number" step="0.1" id="pt_prix_vente" value="1">
+                    </div>
+                    <div class="field">
+                        <label>Investissement (€)</label>
+                        <input type="number" id="pt_invest" value="2000">
+                    </div>
+
+                    <button class="toggle-advanced" onclick="toggleAdvanced('advanced-pt')">Coûts Opérationnels
+                        ▼</button>
+                    <div id="advanced-pt" class="advanced-section hidden">
+                        <div class="field-small"><label>Plants (€/cycle)</label><input type="number" id="pt_cout_plants"
+                                value="30"></div>
+                        <div class="field-small"><label>Engrais (€/cycle)</label><input type="number"
+                                id="pt_cout_engrais" value="40"></div>
+                        <div class="field-small"><label>Eau (€/cycle)</label><input type="number" id="pt_cout_eau"
+                                value="25"></div>
+                        <div class="field-small"><label>Phyto (€/cycle)</label><input type="number" id="pt_cout_phyto"
+                                value="15"></div>
+                        <div class="field-small"><label>Élec (€/cycle)</label><input type="number" id="pt_cout_elec"
+                                value="5"></div>
+
+                        <h4>Main d'Oeuvre (h/cycle)</h4>
+                        <div class="field-small"><label>Sol</label><input type="number" id="pt_mo_sol" value="6"></div>
+                        <div class="field-small"><label>Semis/Plant.</label><input type="number" id="pt_mo_semis"
+                                value="8"></div>
+                        <div class="field-small"><label>Désherbage</label><input type="number" id="pt_mo_desh"
+                                value="10"></div>
+                        <div class="field-small"><label>Récolte</label><input type="number" id="pt_mo_recolte"
+                                value="12"></div>
+                        <div class="field-small"><label>Maint.</label><input type="number" id="pt_mo_maint" value="2">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section C -->
+                <div class="input-group highlight-group">
+                    <h3>C. Hydroponie MyFanjan</h3>
+                    <div class="field">
+                        <label>Nb Tours</label>
+                        <input type="number" id="hy_tours" value="100">
+                    </div>
+                    <div class="field">
+                        <label>Capacité/Tour</label>
+                        <input type="number" id="hy_capacité" value="40">
+                    </div>
+                    <div class="field">
+                        <label>Cycle (semaines)</label>
+                        <input type="number" id="hy_cycle" value="5">
+                    </div>
+                    <div class="field">
+                        <label>Prix Vente (€)</label>
+                        <input type="number" step="0.1" id="hy_prix_vente" value="1.5">
+                    </div>
+                    <div class="field">
+                        <label>Taux Vente (%)</label>
+                        <input type="number" id="hy_taux_vente" value="95">
+                    </div>
+
+                    <button class="toggle-advanced" onclick="toggleAdvanced('advanced-hy')">Coûts & Technique ▼</button>
+                    <div id="advanced-hy" class="advanced-section hidden">
+                        <div class="field-small"><label>Prix Tour (€)</label><input type="number" id="hy_prix_tour"
+                                value="600"></div>
+                        <div class="field-small"><label>Install (€)</label><input type="number" id="hy_install"
+                                value="5000"></div>
+                        <div class="field-small"><label>Maint. An (€)</label><input type="number" id="hy_maint_an"
+                                value="500"></div>
+
+                        <div class="field-small"><label>Plants (€/cycle)</label><input type="number" id="hy_cout_plants"
+                                value="80"></div>
+                        <div class="field-small"><label>Engrais (€/tr)</label><input type="number" step="0.1"
+                                id="hy_cout_engrais" value="5"></div>
+                        <div class="field-small"><label>Eau (€/cycle)</label><input type="number" id="hy_cout_eau"
+                                value="5"></div>
+
+                        <h4>Énergie</h4>
+                        <div class="field-small"><label>Pompes (W)</label><input type="number" id="hy_pomp_w"
+                                value="500"></div>
+                        <div class="field-small"><label>Heures/j</label><input type="number" id="hy_pomp_h" value="24">
+                        </div>
+                        <div class="field-small"><label>Jours/cycle</label><input type="number" id="hy_pomp_j"
+                                value="35"></div>
+
+                        <h4>Main d'Oeuvre (h/cycle)</h4>
+                        <div class="field-small"><label>Sol (0)</label><input type="number" id="hy_mo_sol" value="0"
+                                disabled></div>
+                        <div class="field-small"><label>Plantation</label><input type="number" id="hy_mo_plant"
+                                value="5"></div>
+                        <div class="field-small"><label>Désherbage (0)</label><input type="number" id="hy_mo_desh"
+                                value="0" disabled></div>
+                        <div class="field-small"><label>Récolte</label><input type="number" id="hy_mo_recolte"
+                                value="6"></div>
+                        <div class="field-small"><label>Maint.</label><input type="number" id="hy_mo_maint" value="3">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-area">
+                <button id="reset-btn" onclick="resetDefaults()">Rétablir Défauts</button>
+            </div>
+        </aside>
+
+        <!-- Main Dashboard -->
+        <main class="dashboard">
+            <header>
+                <h2>Analyse ROI</h2>
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('tab-synthese')">1. Synthèse</button>
+                    <button class="tab-btn" onclick="switchTab('tab-exploitation')">2. Exploitation Détaillée</button>
+                    <button class="tab-btn" onclick="switchTab('tab-amortissement')">3. Amortissement (Hydro)</button>
+                </div>
+            </header>
+
+            <!-- TAB 1: SYNTHESE -->
+            <div id="tab-synthese" class="tab-content active">
+                <div class="kpi-row">
+                    <div class="kpi-card glass">
+                        <span class="label">Investissement</span>
+                        <div class="values">
+                            <span class="val-hy" id="out_invest_hy">-- €</span>
+                            <span class="sub text-muted">vs <span id="out_invest_pt">--</span> (Terre)</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card glass highlight">
+                        <span class="label">Payback (Retour Invest.)</span>
+                        <div class="main-val" id="out_payback">-- Ans</div>
+                    </div>
+                    <div class="kpi-card glass">
+                        <span class="label">Marge Nette / An</span>
+                        <div class="values">
+                            <span class="val-hy" id="out_marge_net_hy">-- €</span>
+                            <span class="diff positive" id="out_diff_marge">+ -- €</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-container">
+                    <!-- Main Comp Table -->
+                    <div class="card table-card">
+                        <h3>Comparatif Synthetique</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Indicateur</th>
+                                    <th>Pleine Terre</th>
+                                    <th>MyFanjan</th>
+                                    <th>Écart</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Cycles / an</td>
+                                    <td id="t_cycles_pt"></td>
+                                    <td id="t_cycles_hy"></td>
+                                    <td id="t_diff_cycles"></td>
+                                </tr>
+                                <tr>
+                                    <td>Production (salades)</td>
+                                    <td id="t_prod_pt"></td>
+                                    <td id="t_prod_hy"></td>
+                                    <td id="t_diff_prod"></td>
+                                </tr>
+                                <tr class="section-head">
+                                    <td>Chiffre d'Affaires</td>
+                                    <td id="t_ca_pt" class="bold"></td>
+                                    <td id="t_ca_hy" class="bold"></td>
+                                    <td id="t_diff_ca" class="trend"></td>
+                                </tr>
+                                <tr>
+                                    <td>Charges totales</td>
+                                    <td id="t_charges_pt"></td>
+                                    <td id="t_charges_hy"></td>
+                                    <td id="t_diff_charges"></td>
+                                </tr>
+                                <tr class="sub-row">
+                                    <td>dont Main d'Oeuvre</td>
+                                    <td id="t_mo_pt"></td>
+                                    <td id="t_mo_hy"></td>
+                                    <td id="t_diff_mo"></td>
+                                </tr>
+                                <tr class="sub-row">
+                                    <td>dont Énergie</td>
+                                    <td id="t_elec_pt"></td>
+                                    <td id="t_elec_hy"></td>
+                                    <td id="t_diff_elec"></td>
+                                </tr>
+                                <tr class="calc-row">
+                                    <td>Marge Brute</td>
+                                    <td id="t_mb_pt"></td>
+                                    <td id="t_mb_hy"></td>
+                                    <td id="t_diff_mb"></td>
+                                </tr>
+                                <tr class="calc-row final">
+                                    <td>Résultat Net</td>
+                                    <td id="t_net_pt"></td>
+                                    <td id="t_net_hy"></td>
+                                    <td id="t_diff_net"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Cost Breakdown -->
+                    <div class="card stats-card">
+                        <h3>Rentabilité</h3>
+                        <ul class="stats-list">
+                            <li>
+                                <span>Coût de revient / salade</span>
+                                <div class="comp-bar">
+                                    <span id="cost_unit_pt" class="c-pt"></span>
+                                    <span class="vs">vs</span>
+                                    <span id="cost_unit_hy" class="c-hy"></span>
+                                </div>
+                            </li>
+                            <li>
+                                <span>Heures Travail / an</span>
+                                <div class="comp-bar">
+                                    <span id="hours_pt" class="c-pt"></span>
+                                    <span class="vs">vs</span>
+                                    <span id="hours_hy" class="c-hy"></span>
+                                </div>
+                            </li>
+                            <li class="highlight-li">
+                                <span>VAN (5 ans)</span>
+                                <strong id="out_van" class="big-number">-- €</strong>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: EXPLOITATION DETAILLEE -->
+            <div id="tab-exploitation" class="tab-content hidden">
+                <div class="card full-table-card">
+                    <h3>Compte d'Exploitation Annuel Détaillé</h3>
+                    <table class="data-table detailed-table">
+                        <thead>
+                            <tr>
+                                <th>Poste</th>
+                                <th>Pleine Terre</th>
+                                <th>Hydroponie</th>
+                                <th>Écart</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailed-exploitation-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 3: AMORTISSEMENT -->
+            <div id="tab-amortissement" class="tab-content hidden">
+                <div class="card full-table-card">
+                    <h3>Plan d'Amortissement & Cash Flow (5 Ans) - Hydroponie</h3>
+                    <table class="data-table amort-table">
+                        <thead>
+                            <tr>
+                                <th>Poste</th>
+                                <th>Année 0</th>
+                                <th>Année 1</th>
+                                <th>Année 2</th>
+                                <th>Année 3</th>
+                                <th>Année 4</th>
+                                <th>Année 5</th>
+                            </tr>
+                        </thead>
+                        <tbody id="amortissement-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
