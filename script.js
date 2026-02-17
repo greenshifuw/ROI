@@ -11,6 +11,7 @@ const defaults = {
     prix_plants: 0.1, // New V2
     prix_eau: 0.087, // New V2
     hauteur_eau: 200, // New V2
+    taux_subvention: 30, // % New V3
 
     // B. Pleine Terre
     pt_densite: 14,
@@ -59,7 +60,7 @@ function init() {
     bindInputs();
     calculate();
     // Verify script loads
-    console.log("ROI App Initialized V2");
+    console.log("ROI App Initialized V3");
 }
 
 // Global UI Helpers
@@ -155,8 +156,12 @@ function calculate() {
     const pt_charges_totales = pt_ch_plants + pt_ch_engrais + pt_ch_eau + pt_ch_phyto + pt_ch_elec + pt_ch_mo;
     const pt_marge_brute = pt_ca_an - pt_charges_totales;
 
-    // Amortissement PT
-    const pt_amort_an = state.pt_invest / state.duree_amortissement;
+    // Amortissement PT (V3: Net Invest - PT has 0 subvention)
+    const pt_subvention = 0;
+    const pt_invest_net = state.pt_invest - pt_subvention;
+    const pt_amort_an = pt_invest_net / state.duree_amortissement;
+
+    // Resultat Net PT
     const pt_res_net = pt_marge_brute - pt_amort_an;
 
     const pt_cout_revient = pt_comm_an > 0 ? (pt_charges_totales + pt_amort_an) / pt_comm_an : 0;
@@ -202,42 +207,35 @@ function calculate() {
     const hy_charges_totales = hy_ch_plants + hy_ch_engrais + hy_ch_eau + 0 + hy_ch_elec + hy_ch_mo + hy_ch_maint;
     const hy_marge_brute = hy_ca_an - hy_charges_totales;
 
-    // Amortissement Hy
+    // Amortissement Hy V3 (Net of Subvention)
     // Invest = Tours * Prix + Install
     const hy_invest = (state.hy_tours * state.hy_prix_tour) + state.hy_install;
-    const hy_amort_an = hy_invest / state.duree_amortissement;
+    const hy_subvention = hy_invest * (state.taux_subvention / 100);
+    const hy_invest_net = hy_invest - hy_subvention;
+    const hy_amort_an = hy_invest_net / state.duree_amortissement;
+
+    // Resultat Net Hy
     const hy_res_net = hy_marge_brute - hy_amort_an;
 
     const hy_cout_revient = hy_comm_an > 0 ? (hy_charges_totales + hy_amort_an) / hy_comm_an : 0;
 
     // --- PAYBACK & VAN ---
-    // Cash flow diff for payback of the EXTRA investment? 
-    // Usually Payback = Invest / Annual Cash Flow.
-    // Excel Payback Cell D17: '3. Amortissement 5 ans'!C16
-    // Excel Amort Sheet:
-    // Invest (C4) = -Exploitation!D43 (Total Invest Hy)
-    // Cash Flow Annuel (D11) = D8 (Res Net) - D7 (Dotation Amort negative so + Amort) => Res Net + Amort = Cash Flow (Marge Brute roughly? No, Tax?)
-    // Actually C11 in Amort = ResNet - Dotation.
-    // Wait, D11 (Cash Flow Year 1) = D8 (Res Net) - D7 (Dotation which is negative) => Res Net + Amort. Correct.
-    // Which is basically Marge Brute if no Tax?
-    // Let's check Excel again: D8 = Res Net. D7 = -Amort. 
-    // D11 = D8 - D7 = Res Net + Amort. 
-    // And Res Net = Marge Brute - Amort.
-    // So D11 = (Marge Brute - Amort) + Amort = Marge Brute.
-    // So Cash Flow = Marge Brute.
-
-    // Payback = (-Invest) / CashFlow
+    // Update Payback to use Net Invest? 
+    // Excel Row 17 (Synthèse): Payback = (-InvestNet?) / CashFlow? 
+    // V3 Excel logic likely uses Net Invest for Payback as well if it's "decaissement".
+    // Let's use Net Invest for Payback to be consistent with "Investment real" logic.
     const hy_cash_flow_an = hy_marge_brute;
     let hy_payback = "N/A";
     if (hy_cash_flow_an > 0) {
-        hy_payback = (hy_invest / hy_cash_flow_an).toFixed(1);
+        // Using Net Invest for payback
+        hy_payback = (hy_invest_net / hy_cash_flow_an).toFixed(1);
     }
 
     // VAN (NPV) 5 ans
     // Inv + CF/(1+t) + CF/(1+t)^2 ...
-    // Inv is negative
+    // V3: Use Net Invest
     const taux = state.taux_act / 100;
-    let van = -hy_invest;
+    let van = -hy_invest_net;
     for (let i = 1; i <= 5; i++) {
         van += hy_cash_flow_an / Math.pow(1 + taux, i);
     }
@@ -368,7 +366,9 @@ function calculate() {
         // 9. INVEST & AMORT
         { l: "INVESTISSEMENT & AMORTISSEMENT", type: "header" },
         { l: "Investissement initial total", pt: state.pt_invest, hy: hy_invest, fmt: "eur", inv: true },
-        { l: "Amortissement annuel", pt: pt_amort_an, hy: hy_amort_an, fmt: "eur", inv: true },
+        { l: "Subvention reçue", pt: 0, hy: hy_subvention, fmt: "eur", inv: false, hideDiff: true },
+        { l: "Investissement NET", pt: pt_invest_net, hy: hy_invest_net, fmt: "eur", inv: true },
+        { l: "Amortissement annuel (sur Net)", pt: pt_amort_an, hy: hy_amort_an, fmt: "eur", inv: true },
 
         // 10. RES NET
         { l: "RÉSULTAT NET", type: "header" },
@@ -385,7 +385,7 @@ function calculate() {
 
     // Amortissement Data
     renderAmortissementTable({
-        invest: hy_invest,
+        invest: hy_invest_net, // Using Net Invest as flow base? Excel confirms Amort sheet uses Net Invest.
         ca: hy_ca_an,
         charges: hy_charges_totales,
         amort: hy_amort_an,
